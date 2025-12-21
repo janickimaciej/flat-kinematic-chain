@@ -1,0 +1,8 @@
+/.vs/
+*.user
+/x64/
+*.exe
+*.ini
+*.json
+
+/dep/
