@@ -6,6 +6,7 @@
 Scene::Scene(const glm::ivec2& viewportSize) :
 	m_viewportSize{viewportSize}
 {
+	updateConfigurationSpace();
 	setMainChainPos({3, 4});
 	cancel();
 }
@@ -79,9 +80,35 @@ void Scene::setSetPosMode(SetPosMode mode)
 	m_setPosMode = mode;
 }
 
+unsigned int Scene::getConfigurationSpaceTextureId() const
+{
+	return m_configurationSpaceFramebuffer.getTextureId();
+}
+
 void Scene::updateConfigurationSpace()
 {
-	// TODO
+	m_configurationSpaceFramebuffer.bind();
+	static constexpr glm::vec3 backgroundColor{0.3f, 0.3f, 0.3f};
+	glClearColor(backgroundColor.r, backgroundColor.g, backgroundColor.b, 1.0f);
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+	ShaderPrograms::configurationSpace->use();
+	ShaderPrograms::configurationSpace->setUniform("kinematicChainLength1",
+		KinematicChain::getLength1());
+	ShaderPrograms::configurationSpace->setUniform("kinematicChainLength2",
+		KinematicChain::getLength2());
+	for (const auto& obstacle : m_obstacles)
+	{
+		ShaderPrograms::configurationSpace->setUniform("obstaclePos", obstacle->getPos());
+		ShaderPrograms::configurationSpace->setUniform("obstacleSize", obstacle->getSize());
+		m_quad.render();
+	}
+
+	m_configurationSpaceFramebuffer.unbind();
+
+	updateConfigurationSpaceData();
+
+	setMainChainPos(getMainChainPos());
 }
 
 float Scene::getLength1() const
@@ -285,11 +312,11 @@ void Scene::setChainPos(KinematicChain& chain, const glm::vec2& pos)
 		return;
 	}
 
-	bool redValid = true; // TODO
-	bool greenValid = true; // TODO
-
 	m_redChain.setConfiguration(solutions->first);
 	m_greenChain.setConfiguration(solutions->second);
+
+	bool redValid = !intersectsObstacle(m_redChain.getConfiguration());
+	bool greenValid = !intersectsObstacle(m_greenChain.getConfiguration());
 
 	chain.setConfiguration(redValid ? solutions->first : solutions->second);
 
@@ -328,4 +355,24 @@ void Scene::updateCurrChain()
 
 	m_currChain.setPos(m_startChain.getPos()); // TODO
 	m_currChain.setConfiguration(m_startChain.getConfiguration()); // TODO
+}
+
+void Scene::updateConfigurationSpaceData()
+{
+	m_configurationSpaceFramebuffer.bind();
+	m_configurationSpaceFramebuffer.getTextureData((*m_configurationSpaceData)[0][0].data());
+	m_configurationSpaceFramebuffer.unbind();
+}
+
+bool Scene::intersectsObstacle(const KinematicChain::Configuration& configuration) const
+{
+	float xPix = configuration.angle1Deg + 180.0f - 0.5f;
+	float yPix = configuration.angle2Deg + 180.0f - 0.5f;
+
+	int xPixInd = std::max(static_cast<int>(std::round(xPix)), 0);
+	int yPixInd = std::max(static_cast<int>(std::round(yPix)), 0);
+
+	return (*m_configurationSpaceData)[yPixInd][xPixInd][0] > 128 &&
+		(*m_configurationSpaceData)[yPixInd][xPixInd][1] < 1 &&
+		(*m_configurationSpaceData)[yPixInd][xPixInd][2] < 1;
 }

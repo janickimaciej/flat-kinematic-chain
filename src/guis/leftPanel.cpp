@@ -1,5 +1,6 @@
 #include "guis/leftPanel.hpp"
 
+#include "guis/configurationSpacePanel.hpp"
 #include "mode.hpp"
 
 #include <imgui/imgui.h>
@@ -15,7 +16,8 @@ LeftPanel::LeftPanel(Scene& scene, const glm::ivec2& viewportSize) :
 void LeftPanel::update()
 {
 	ImGui::SetNextWindowPos({0, 0}, ImGuiCond_Always);
-	ImGui::SetNextWindowSize({width, static_cast<float>(m_viewportSize.y)}, ImGuiCond_Always);
+	ImGui::SetNextWindowSize({width, static_cast<float>(m_viewportSize.y -
+		ConfigurationSpacePanel::size + 1)}, ImGuiCond_Always);
 	ImGui::Begin("leftPanel", nullptr, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoTitleBar);
 	ImGui::PushItemWidth(100);
 

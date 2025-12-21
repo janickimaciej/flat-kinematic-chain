@@ -5,6 +5,7 @@
 #include "kinematicChain.hpp"
 #include "mode.hpp"
 #include "obstacle.hpp"
+#include "quad.hpp"
 #include "setPosMode.hpp"
 
 #include <glm/glm.hpp>
@@ -24,6 +25,7 @@ public:
 	void setSetPosMode(SetPosMode mode);
 
 	void updateConfigurationSpace();
+	unsigned int getConfigurationSpaceTextureId() const;
 
 	float getLength1() const;
 	void setLength1(float length);
@@ -57,6 +59,8 @@ public:
 	float getTime() const;
 
 private:
+	using ConfigurationSpaceData = std::array<std::array<std::array<unsigned char, 3>, 360>, 360>;
+
 	const glm::ivec2& m_viewportSize{};
 	Mode m_mode = Mode::edit;
 	SetPosMode m_setPosMode = SetPosMode::none;
@@ -78,9 +82,16 @@ private:
 	std::vector<std::unique_ptr<Obstacle>> m_obstacles{};
 	Obstacle* m_selectedObstacle = nullptr;
 
+	Framebuffer m_configurationSpaceFramebuffer{{360, 360}};
+	Quad m_quad{};
+	std::unique_ptr<ConfigurationSpaceData> m_configurationSpaceData =
+		std::make_unique<ConfigurationSpaceData>();
+
 	Animation m_animation{[this] () { updateCurrChain(); }};
 
 	void setChainPos(KinematicChain& chain, const glm::vec2& pos);
 	void chooseColor(const KinematicChain::Configuration& configuration);
 	void updateCurrChain();
+	void updateConfigurationSpaceData();
+	bool intersectsObstacle(const KinematicChain::Configuration& configuration) const;
 };

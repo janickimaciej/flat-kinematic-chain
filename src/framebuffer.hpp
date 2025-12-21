@@ -13,6 +13,7 @@ public:
 	void unbind() const;
 	void bindTexture() const;
 	void resize(const glm::ivec2& size) const;
+	unsigned int getTextureId() const;
 	void getTextureData(unsigned char* output) const;
 
 private:

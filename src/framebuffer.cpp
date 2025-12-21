@@ -50,6 +50,11 @@ void Framebuffer::resize(const glm::ivec2& size) const
 	resizeDepthStencilBuffer(size);
 }
 
+unsigned int Framebuffer::getTextureId() const
+{
+	return m_colorBuffer;
+}
+
 void Framebuffer::getTextureData(unsigned char* output) const
 {
 	glReadPixels(0, 0, m_size.x, m_size.y, GL_RGB, GL_UNSIGNED_BYTE, output);

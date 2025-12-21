@@ -9,6 +9,7 @@
 
 GUI::GUI(GLFWwindow* window, Scene& scene, const glm::ivec2& windowSize) :
 	m_leftPanel{scene, windowSize},
+	m_configurationSpacePanel{scene, windowSize},
 	m_scene{scene}
 {
 	IMGUI_CHECKVERSION();
@@ -34,6 +35,7 @@ void GUI::update()
 	ImGui::NewFrame();
 
 	m_leftPanel.update();
+	m_configurationSpacePanel.update();
 }
 
 void GUI::render()

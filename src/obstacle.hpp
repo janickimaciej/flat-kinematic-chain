@@ -15,7 +15,7 @@ public:
 	void setSize(const glm::vec2& size);
 
 private:
-	glm::vec2 m_pos{3, 3};
+	glm::vec2 m_pos{0, 0};
 	glm::vec2 m_size{1, 1};
 
 	Quad m_mesh{};

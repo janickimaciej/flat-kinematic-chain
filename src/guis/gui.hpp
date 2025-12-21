@@ -1,5 +1,6 @@
 #pragma once
 
+#include "guis/configurationSpacePanel.hpp"
 #include "guis/leftPanel.hpp"
 #include "scene.hpp"
 
@@ -18,6 +19,7 @@ public:
 
 private:
 	LeftPanel m_leftPanel;
+	ConfigurationSpacePanel m_configurationSpacePanel;
 
 	Scene& m_scene;
 };

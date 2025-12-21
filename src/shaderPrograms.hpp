@@ -10,4 +10,5 @@ namespace ShaderPrograms
 
 	extern std::unique_ptr<const ShaderProgram> quad;
 	extern std::unique_ptr<const ShaderProgram> polyline;
+	extern std::unique_ptr<const ShaderProgram> configurationSpace;
 }
