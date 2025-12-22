@@ -3,6 +3,7 @@
 #include "guis/leftPanel.hpp"
 #include "shaderPrograms.hpp"
 
+#include <algorithm>
 #include <queue>
 
 Scene::Scene(const glm::ivec2& viewportSize) :
@@ -15,6 +16,7 @@ Scene::Scene(const glm::ivec2& viewportSize) :
 void Scene::update()
 {
 	m_animation.update();
+	updateCurrChain();
 }
 
 void Scene::render()
@@ -71,7 +73,6 @@ void Scene::setMode(Mode mode)
 	cancel();
 	m_startChain.setIsValid(false);
 	m_endChain.setIsValid(false);
-	updateCurrChain();
 	m_mode = mode;
 }
 
@@ -118,6 +119,8 @@ void Scene::updateConfigurationSpace()
 	{
 		findPath();
 	}
+
+	m_updated = true;
 }
 
 float Scene::getLength1() const
@@ -130,6 +133,8 @@ void Scene::setLength1(float length)
 	cancel();
 	KinematicChain::setLength1(length);
 	m_mainChain.updateGeometry();
+
+	m_updated = false;
 }
 
 float Scene::getLength2() const
@@ -142,6 +147,8 @@ void Scene::setLength2(float length)
 	cancel();
 	KinematicChain::setLength2(length);
 	m_mainChain.updateGeometry();
+
+	m_updated = false;
 }
 
 glm::vec2 Scene::getMainChainPos() const
@@ -163,7 +170,8 @@ void Scene::setStartChainPos(const glm::vec2& pos)
 {
 	m_setPosMode = SetPosMode::start;
 	setChainPos(m_startChain, pos);
-	updateCurrChain();
+
+	m_updated = false;
 }
 
 glm::vec2 Scene::getCurrChainPos() const
@@ -180,7 +188,8 @@ void Scene::setEndChainPos(const glm::vec2& pos)
 {
 	m_setPosMode = SetPosMode::end;
 	setChainPos(m_endChain, pos);
-	updateCurrChain();
+
+	m_updated = false;
 }
 
 void Scene::setChainScreenPos(const glm::vec2& screenPos)
@@ -225,6 +234,11 @@ void Scene::chooseGreen()
 
 void Scene::selectObstacle(const glm::vec2& screenPos)
 {
+	if (m_mode == Mode::path)
+	{
+		return;
+	}
+
 	std::optional<int> index = std::nullopt;
 	static constexpr float treshold = 30;
 	float minScreenDistanceSquared = treshold * treshold;
@@ -253,6 +267,8 @@ void Scene::addObstacle()
 {
 	m_obstacles.push_back(std::make_unique<Obstacle>());
 	m_selectedObstacle = m_obstacles.back().get();
+
+	m_updated = false;
 }
 
 void Scene::deleteSelectedObstacle()
@@ -267,6 +283,8 @@ void Scene::deleteSelectedObstacle()
 	);
 
 	m_selectedObstacle = nullptr;
+
+	m_updated = false;
 }
 
 void Scene::cancel()
@@ -276,9 +294,31 @@ void Scene::cancel()
 	m_setPosMode = SetPosMode::none;
 }
 
-Obstacle* Scene::getSelectedObstacle()
+bool Scene::isObstacleSelected() const
 {
-	return m_selectedObstacle;
+	return m_selectedObstacle != nullptr;
+}
+
+glm::vec2 Scene::getSelectedObstaclePos() const
+{
+	return m_selectedObstacle->getPos();
+}
+
+void Scene::setSelectedObstaclePos(const glm::vec2& pos)
+{
+	m_selectedObstacle->setPos(pos);
+	m_updated = false;
+}
+
+glm::vec2 Scene::getSelectedObstacleSize() const
+{
+	return m_selectedObstacle->getSize();
+}
+
+void Scene::setSelectedObstacleSize(const glm::vec2& size)
+{
+	m_selectedObstacle->setSize(size);
+	m_updated = false;
 }
 
 void Scene::startAnimation()
@@ -350,22 +390,60 @@ void Scene::chooseColor(const KinematicChain::Configuration& configuration)
 		m_endChain.setConfiguration(configuration);
 	}
 
-	updateCurrChain();
 	cancel();
 }
 
 void Scene::updateCurrChain()
 {
 	bool bothChainsValid = m_startChain.getIsValid() && m_endChain.getIsValid();
-	bool pathExists = true; // TODO
-	m_currChain.setIsValid(bothChainsValid && pathExists);
-	if (!bothChainsValid)
+	bool pathExists = !m_path.empty();
+	m_currChain.setIsValid(bothChainsValid && pathExists && m_updated);
+	if (!m_currChain.getIsValid())
 	{
 		return;
 	}
 
-	m_currChain.setPos(m_startChain.getPos()); // TODO
-	m_currChain.setConfiguration(m_startChain.getConfiguration()); // TODO
+	float relativeTime = m_animation.getTime() / m_animation.getEndTime();
+	relativeTime = std::min(std::max(relativeTime, 0.0f), 1.0f);
+	float pathInd = relativeTime * (m_path.size() - 1);
+	int pathIndFloor = std::floor(pathInd);
+	int pathIndCeil = pathIndFloor + 1;
+
+	float angle1DegIndFloor = m_path[pathIndFloor].angle1Deg;
+	float angle2DegIndFloor = m_path[pathIndFloor].angle2Deg;
+	int properPathIndCeil = pathIndFloor == m_path.size() - 1 ? pathIndFloor : pathIndCeil;
+	float angle1DegIndCeil = m_path[properPathIndCeil].angle1Deg;
+	float angle2DegIndCeil = m_path[properPathIndCeil].angle2Deg;
+
+	if (std::abs(angle1DegIndCeil - angle1DegIndFloor) > 180.0f)
+	{
+		if (angle1DegIndFloor < 0)
+		{
+			angle1DegIndFloor += 360.0f;
+		}
+		else
+		{
+			angle1DegIndCeil += 360.0f;
+		}
+	}
+
+	if (std::abs(angle2DegIndCeil - angle2DegIndFloor) > 180.0f)
+	{
+		if (angle2DegIndFloor < 0)
+		{
+			angle2DegIndFloor += 360.0f;
+		}
+		else
+		{
+			angle2DegIndCeil += 360.0f;
+		}
+	}
+
+	float weightFloor = pathIndCeil - pathInd;
+	float weightCeil = pathInd - pathIndFloor;
+
+	m_currChain.setConfiguration({weightFloor * angle1DegIndFloor + weightCeil * angle1DegIndCeil,
+		weightFloor * angle2DegIndFloor + weightCeil * angle2DegIndCeil});
 }
 
 void Scene::updateConfigurationSpaceData()
@@ -407,6 +485,7 @@ void Scene::findPath()
 
 	glm::ivec2 startPix = configuration2Pix(m_startChain.getConfiguration());
 	glm::ivec2 endPix = configuration2Pix(m_endChain.getConfiguration());
+	(*depthData)[endPix.y][endPix.x] = -1;
 	int maxDepth = 0;
 
 	(*visitedData)[startPix.y][startPix.x] = true;
@@ -420,7 +499,7 @@ void Scene::findPath()
 		queue.pop();
 		int depth = (*depthData)[pix.y][pix.x];
 		maxDepth = std::max(maxDepth, depth);
-		
+
 		int left = pix.x == 0 ? 359 : pix.x - 1;
 		int right = pix.x == 359 ? 0 : pix.x + 1;
 		int down = pix.y == 0 ? 359 : pix.y - 1;
@@ -444,6 +523,11 @@ void Scene::findPath()
 		visit({right, pix.y});
 		visit({pix.x, down});
 		visit({pix.x, up});
+
+		/*visit({left, down});
+		visit({left, up});
+		visit({right, down});
+		visit({right, up});*/
 	}
 
 	for (int i = 0; i < 360; ++i)
@@ -452,13 +536,34 @@ void Scene::findPath()
 		{
 			if ((*visitedData)[j][i])
 			{
-				unsigned char brightness = static_cast<float>((*depthData)[j][i]) / maxDepth * 255;
+				unsigned char brightness = static_cast<unsigned char>(
+					static_cast<float>((*depthData)[j][i]) / maxDepth * 255);
 				(*m_configurationSpaceData)[j][i][0] = brightness;
 				(*m_configurationSpaceData)[j][i][1] = brightness;
 				(*m_configurationSpaceData)[j][i][2] = brightness;
 			}
 		}
 	}
+
+	m_path.clear();
+	if ((*depthData)[endPix.y][endPix.x] != -1)
+	{
+		m_path.push_back(m_endChain.getConfiguration());
+		int pathDepth = (*depthData)[endPix.y][endPix.x];
+		glm::ivec2 pix = endPix;
+		for (int i = 0; i <= pathDepth; ++i)
+		{
+			(*m_configurationSpaceData)[pix.y][pix.x][0] = 0;
+			(*m_configurationSpaceData)[pix.y][pix.x][1] = 0;
+			(*m_configurationSpaceData)[pix.y][pix.x][2] = 255;
+
+			m_path.push_back(pix2Configuration(pix));
+
+			pix = (*parentData)[pix.y][pix.x];
+		}
+		m_path.push_back(m_startChain.getConfiguration());
+	}
+	std::reverse(m_path.begin(), m_path.end());
 
 	m_configurationSpaceFramebuffer.setTextureData((*m_configurationSpaceData)[0][0].data());
 }
@@ -470,6 +575,11 @@ glm::ivec2 Scene::configuration2Pix(const KinematicChain::Configuration& configu
 
 	return {std::max(static_cast<int>(std::round(pix.x)), 0),
 		std::max(static_cast<int>(std::round(pix.y)), 0)};
+}
+
+KinematicChain::Configuration Scene::pix2Configuration(const glm::ivec2& pix)
+{
+	return {pix.x + 0.5f - 180.0f, pix.y + 0.5f - 180.0f};
 }
 
 bool Scene::isObstaclePix(const std::array<unsigned char, 3>& pix)

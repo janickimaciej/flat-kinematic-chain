@@ -106,7 +106,7 @@ std::optional<std::pair<KinematicChain::Configuration, KinematicChain::Configura
 	float middleX1 = (coef - pos.y * middleY1) / pos.x;
 	float angle11 = std::atan2(middleY1, middleX1);
 	float angle21 = std::atan2(pos.y - middleY1, pos.x - middleX1) - angle11;
-	
+
 	float middleY2 = (2 * coef * pos.y + std::sqrt(delta)) / (2 * distSquared);
 	float middleX2 = (coef - pos.y * middleY2) / pos.x;
 	float angle12 = std::atan2(middleY2, middleX2);

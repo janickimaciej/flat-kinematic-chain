@@ -19,7 +19,7 @@ public:
 	Scene(const glm::ivec2& windowSize);
 	void update();
 	void render();
-	
+
 	Mode getMode() const;
 	void setMode(Mode mode);
 	void setSetPosMode(SetPosMode mode);
@@ -31,7 +31,7 @@ public:
 	void setLength1(float length);
 	float getLength2() const;
 	void setLength2(float length);
-	
+
 	glm::vec2 getMainChainPos() const;
 	void setMainChainPos(const glm::vec2& pos);
 	glm::vec2 getStartChainPos() const;
@@ -48,8 +48,12 @@ public:
 	void addObstacle();
 	void deleteSelectedObstacle();
 	void cancel();
-	Obstacle* getSelectedObstacle();
-	
+	bool isObstacleSelected() const;
+	glm::vec2 getSelectedObstaclePos() const;
+	void setSelectedObstaclePos(const glm::vec2& pos);
+	glm::vec2 getSelectedObstacleSize() const;
+	void setSelectedObstacleSize(const glm::vec2& size);
+
 	void startAnimation();
 	void stopAnimation();
 	void resetAnimation();
@@ -65,7 +69,8 @@ private:
 	Mode m_mode = Mode::edit;
 	SetPosMode m_setPosMode = SetPosMode::none;
 	bool m_doubleSolution{};
-	
+	bool m_updated = true;
+
 	static constexpr float pixSize = 0.01f;
 	static constexpr glm::vec3 white{1, 1, 1};
 	static constexpr glm::vec3 red{1, 0, 0};
@@ -88,6 +93,7 @@ private:
 		std::make_unique<ConfigurationSpaceData>();
 
 	Animation m_animation{[this] () { updateCurrChain(); }};
+	std::vector<KinematicChain::Configuration> m_path{};
 
 	void setChainPos(KinematicChain& chain, const glm::vec2& pos);
 	void chooseColor(const KinematicChain::Configuration& configuration);
@@ -96,5 +102,6 @@ private:
 	bool intersectsObstacle(const KinematicChain::Configuration& configuration) const;
 	void findPath();
 	static glm::ivec2 configuration2Pix(const KinematicChain::Configuration& configuration);
+	static KinematicChain::Configuration pix2Configuration(const glm::ivec2& pix);
 	static bool isObstaclePix(const std::array<unsigned char, 3>& pix);
 };

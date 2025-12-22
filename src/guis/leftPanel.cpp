@@ -31,7 +31,7 @@ void LeftPanel::update()
 	}
 
 	ImGui::SeparatorText("Kinematic chain");
-	
+
 	if (m_scene.getMode() == Mode::edit)
 	{
 		ImGui::Text("Lengths");
@@ -68,7 +68,7 @@ void LeftPanel::update()
 			[this] () { return m_scene.getEndChainPos(); },
 			[this] (const glm::vec2& pos) { m_scene.setEndChainPos(pos); },
 			"##endChain");
-		
+
 		ImGui::Spacing();
 
 		if (ImGui::Button("Set start position"))
@@ -102,7 +102,7 @@ void LeftPanel::update()
 	if (m_scene.getMode() == Mode::edit)
 	{
 		ImGui::SeparatorText("Obstacles");
-	
+
 		if (ImGui::Button("Add", {70, 0}))
 		{
 			m_scene.addObstacle();
@@ -110,7 +110,7 @@ void LeftPanel::update()
 
 		ImGui::Spacing();
 
-		if (m_scene.getSelectedObstacle() != nullptr)
+		if (m_scene.isObstacleSelected())
 		{
 			updateObstacle();
 			ImGui::Spacing();
@@ -220,9 +220,7 @@ void LeftPanel::updateObstacle()
 
 	ImGui::PushItemWidth(110);
 
-	Obstacle* obstacle = m_scene.getSelectedObstacle();
-
-	glm::vec2 pos = obstacle->getPos();
+	glm::vec2 pos = m_scene.getSelectedObstaclePos();
 	glm::vec2 prevPos = pos;
 
 	ImGui::Text("Position");
@@ -234,13 +232,13 @@ void LeftPanel::updateObstacle()
 
 	if (pos != prevPos)
 	{
-		obstacle->setPos(pos);
+		m_scene.setSelectedObstaclePos(pos);
 	}
 
 	ImGui::PopItemWidth();
 	ImGui::PushItemWidth(80);
-	
-	glm::vec2 size = obstacle->getSize();
+
+	glm::vec2 size = m_scene.getSelectedObstacleSize();
 	glm::vec2 prevSize = size;
 
 	ImGui::Text("Size");
@@ -252,7 +250,7 @@ void LeftPanel::updateObstacle()
 
 	if (size != prevSize)
 	{
-		obstacle->setSize(size);
+		m_scene.setSelectedObstacleSize(size);
 	}
 
 	ImGui::PopItemWidth();

@@ -24,7 +24,7 @@ void PolylineMesh::render(float width) const
 
 void PolylineMesh::update(const std::vector<glm::vec2>& vertices)
 {
-	m_vertexCount = vertices.size();
+	m_vertexCount = static_cast<int>(vertices.size());
 	glBindBuffer(GL_ARRAY_BUFFER, m_VBO);
 	glBufferData(GL_ARRAY_BUFFER, static_cast<GLsizeiptr>(vertices.size() * sizeof(glm::vec2)),
 		vertices.data(), GL_DYNAMIC_DRAW);

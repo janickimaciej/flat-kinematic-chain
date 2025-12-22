@@ -74,7 +74,7 @@ bool intersectsLine(vec2 start, vec2 segment, float lineX, float lineYMin, float
 	{
 		return false;
 	}
-	
+
 	float yIntersection = start.y + t * segment.y;
 	return yIntersection > lineYMin - eps && yIntersection < lineYMax + eps;
 }
