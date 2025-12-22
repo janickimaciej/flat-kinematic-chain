@@ -60,6 +60,12 @@ void Framebuffer::getTextureData(unsigned char* output) const
 	glReadPixels(0, 0, m_size.x, m_size.y, GL_RGB, GL_UNSIGNED_BYTE, output);
 }
 
+void Framebuffer::setTextureData(unsigned char* input) const
+{
+	glBindTexture(GL_TEXTURE_2D, m_colorBuffer);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, m_size.x, m_size.y, 0, GL_RGB, GL_UNSIGNED_BYTE, input);
+}
+
 void Framebuffer::createColorBuffer(const glm::ivec2& size)
 {
 	glGenTextures(1, &m_colorBuffer);

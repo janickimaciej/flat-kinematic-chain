@@ -15,6 +15,7 @@ public:
 	void resize(const glm::ivec2& size) const;
 	unsigned int getTextureId() const;
 	void getTextureData(unsigned char* output) const;
+	void setTextureData(unsigned char* input) const;
 
 private:
 	unsigned int m_FBO{};

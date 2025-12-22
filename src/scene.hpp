@@ -94,4 +94,7 @@ private:
 	void updateCurrChain();
 	void updateConfigurationSpaceData();
 	bool intersectsObstacle(const KinematicChain::Configuration& configuration) const;
+	void findPath();
+	static glm::ivec2 configuration2Pix(const KinematicChain::Configuration& configuration);
+	static bool isObstaclePix(const std::array<unsigned char, 3>& pix);
 };

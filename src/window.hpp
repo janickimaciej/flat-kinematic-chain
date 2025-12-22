@@ -30,6 +30,7 @@ private:
 	bool m_dragging = false;
 
 	void resizeCallback(int width, int height);
+	void cursorMovementCallback(double x, double y);
 	void buttonCallback(int button, int action, int);
 	void keyCallback(int key, int, int action, int);
 

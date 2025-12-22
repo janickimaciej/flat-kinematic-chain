@@ -67,7 +67,7 @@ bool intersectsObstacle(vec2 start, vec2 segment)
 
 bool intersectsLine(vec2 start, vec2 segment, float lineX, float lineYMin, float lineYMax)
 {
-	const float eps = 1e-6;
+	const float eps = 0;
 
 	float t = (lineX - start.x) / segment.x;
 	if (t < -eps || t > 1 + eps)

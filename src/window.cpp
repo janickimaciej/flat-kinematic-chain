@@ -22,6 +22,7 @@ Window::Window(const glm::ivec2& initialSize) :
 	glfwSwapInterval(1);
 
 	glfwSetFramebufferSizeCallback(m_windowPtr, callbackWrapper<&Window::resizeCallback>);
+	//glfwSetCursorPosCallback(m_windowPtr, callbackWrapper<&Window::cursorMovementCallback>);
 	glfwSetMouseButtonCallback(m_windowPtr, callbackWrapper<&Window::buttonCallback>);
 	glfwSetKeyCallback(m_windowPtr, callbackWrapper<&Window::keyCallback>);
 
@@ -78,9 +79,29 @@ void Window::resizeCallback(int width, int height)
 	updateViewport();
 }
 
+void Window::cursorMovementCallback(double x, double y)
+{
+	glm::vec2 currPos{static_cast<float>(x), static_cast<float>(y)};
+
+	if (isCursorInGUI())
+	{
+		return;
+	}
+
+	if (m_dragging)
+	{
+		m_scene->setChainScreenPos(currPos);
+	}
+}
+
 void Window::buttonCallback(int button, int action, int)
 {
 	glm::vec2 cursorPos = getCursorPos();
+
+	if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_RELEASE)
+	{
+		m_dragging = false;
+	}
 
 	if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS)
 	{
@@ -96,6 +117,7 @@ void Window::buttonCallback(int button, int action, int)
 		else
 		{
 			m_scene->setChainScreenPos(cursorPos);
+			m_dragging = true;
 		}
 	}
 }

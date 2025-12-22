@@ -3,12 +3,13 @@
 #include "guis/leftPanel.hpp"
 #include "shaderPrograms.hpp"
 
+#include <queue>
+
 Scene::Scene(const glm::ivec2& viewportSize) :
 	m_viewportSize{viewportSize}
 {
 	updateConfigurationSpace();
 	setMainChainPos({3, 4});
-	cancel();
 }
 
 void Scene::update()
@@ -108,7 +109,15 @@ void Scene::updateConfigurationSpace()
 
 	updateConfigurationSpaceData();
 
-	setMainChainPos(getMainChainPos());
+	if (m_mode == Mode::edit)
+	{
+		setMainChainPos(getMainChainPos());
+	}
+
+	if (m_mode == Mode::path)
+	{
+		findPath();
+	}
 }
 
 float Scene::getLength1() const
@@ -195,6 +204,8 @@ void Scene::setChainScreenPos(const glm::vec2& screenPos)
 			setEndChainPos(pos);
 		}
 	}
+
+	m_selectedObstacle = nullptr;
 }
 
 bool Scene::doubleSolution() const
@@ -366,13 +377,102 @@ void Scene::updateConfigurationSpaceData()
 
 bool Scene::intersectsObstacle(const KinematicChain::Configuration& configuration) const
 {
-	float xPix = configuration.angle1Deg + 180.0f - 0.5f;
-	float yPix = configuration.angle2Deg + 180.0f - 0.5f;
+	glm::ivec2 pix = configuration2Pix(configuration);
 
-	int xPixInd = std::max(static_cast<int>(std::round(xPix)), 0);
-	int yPixInd = std::max(static_cast<int>(std::round(yPix)), 0);
+	return isObstaclePix((*m_configurationSpaceData)[pix.y][pix.x]);
+}
 
-	return (*m_configurationSpaceData)[yPixInd][xPixInd][0] > 128 &&
-		(*m_configurationSpaceData)[yPixInd][xPixInd][1] < 1 &&
-		(*m_configurationSpaceData)[yPixInd][xPixInd][2] < 1;
+void Scene::findPath()
+{
+	if (!m_startChain.getIsValid() || !m_endChain.getIsValid())
+	{
+		return;
+	}
+
+	using VisitedData = std::array<std::array<bool, 360>, 360>;
+	using ParentData = std::array<std::array<glm::ivec2, 360>, 360>;
+	using DepthData = std::array<std::array<int, 360>, 360>;
+
+	std::unique_ptr<VisitedData> visitedData = std::make_unique<VisitedData>();
+	std::unique_ptr<ParentData> parentData = std::make_unique<ParentData>();
+	std::unique_ptr<DepthData> depthData = std::make_unique<DepthData>();
+
+	for (auto& row : *visitedData)
+	{
+		for (bool& pix : row)
+		{
+			pix = false;
+		}
+	}
+
+	glm::ivec2 startPix = configuration2Pix(m_startChain.getConfiguration());
+	glm::ivec2 endPix = configuration2Pix(m_endChain.getConfiguration());
+	int maxDepth = 0;
+
+	(*visitedData)[startPix.y][startPix.x] = true;
+	(*depthData)[startPix.y][startPix.x] = 0;
+
+	std::queue<glm::ivec2> queue{};
+	queue.push(startPix);
+	while (!queue.empty())
+	{
+		glm::ivec2 pix = queue.front();
+		queue.pop();
+		int depth = (*depthData)[pix.y][pix.x];
+		maxDepth = std::max(maxDepth, depth);
+		
+		int left = pix.x == 0 ? 359 : pix.x - 1;
+		int right = pix.x == 359 ? 0 : pix.x + 1;
+		int down = pix.y == 0 ? 359 : pix.y - 1;
+		int up = pix.y == 359 ? 0 : pix.y + 1;
+
+		auto visit =
+			[this, &queue, &visitedData, &depthData, &parentData, parent = pix, parentDepth = depth]
+			(const glm::ivec2& pix)
+			{
+				if (!(*visitedData)[pix.y][pix.x] &&
+					!isObstaclePix((*m_configurationSpaceData)[pix.y][pix.x]))
+				{
+					(*visitedData)[pix.y][pix.x] = true;
+					(*depthData)[pix.y][pix.x] = parentDepth + 1;
+					(*parentData)[pix.y][pix.x] = parent;
+					queue.push(pix);
+				}
+			};
+
+		visit({left, pix.y});
+		visit({right, pix.y});
+		visit({pix.x, down});
+		visit({pix.x, up});
+	}
+
+	for (int i = 0; i < 360; ++i)
+	{
+		for (int j = 0; j < 360; ++j)
+		{
+			if ((*visitedData)[j][i])
+			{
+				unsigned char brightness = static_cast<float>((*depthData)[j][i]) / maxDepth * 255;
+				(*m_configurationSpaceData)[j][i][0] = brightness;
+				(*m_configurationSpaceData)[j][i][1] = brightness;
+				(*m_configurationSpaceData)[j][i][2] = brightness;
+			}
+		}
+	}
+
+	m_configurationSpaceFramebuffer.setTextureData((*m_configurationSpaceData)[0][0].data());
+}
+
+glm::ivec2 Scene::configuration2Pix(const KinematicChain::Configuration& configuration)
+{
+	glm::vec2 pix = {configuration.angle1Deg + 180.0f - 0.5f,
+		configuration.angle2Deg + 180.0f - 0.5f};
+
+	return {std::max(static_cast<int>(std::round(pix.x)), 0),
+		std::max(static_cast<int>(std::round(pix.y)), 0)};
+}
+
+bool Scene::isObstaclePix(const std::array<unsigned char, 3>& pix)
+{
+	return pix[0] > 128 && pix[1] < 1 && pix[2] < 1;
 }
