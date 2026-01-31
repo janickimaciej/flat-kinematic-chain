@@ -1,12 +1,11 @@
-#include "guis/leftPanel.hpp"
+#include "gui/leftPanel.hpp"
 
-#include "guis/configurationSpacePanel.hpp"
+#include "gui/configurationSpacePanel.hpp"
 #include "mode.hpp"
 
 #include <imgui/imgui.h>
 
 #include <algorithm>
-#include <string>
 
 LeftPanel::LeftPanel(Scene& scene, const glm::ivec2& viewportSize) :
 	m_scene{scene},

@@ -16,7 +16,7 @@
 class Scene
 {
 public:
-	Scene(const glm::ivec2& windowSize);
+	Scene(const glm::ivec2& viewportSize);
 	void update();
 	void render();
 
@@ -71,18 +71,18 @@ private:
 	bool m_doubleSolution{};
 	bool m_updated = true;
 
-	static constexpr float pixSize = 0.01f;
-	static constexpr glm::vec3 white{1, 1, 1};
-	static constexpr glm::vec3 red{1, 0, 0};
-	static constexpr glm::vec3 green{0, 1, 0};
+	static constexpr float m_pixSize = 0.01f;
+	static constexpr glm::vec3 m_white{1, 1, 1};
+	static constexpr glm::vec3 m_red{1, 0, 0};
+	static constexpr glm::vec3 m_green{0, 1, 0};
 
-	KinematicChain m_mainChain{white, 3};
-	KinematicChain m_startChain{white, 1};
-	KinematicChain m_currChain{white, 3};
-	KinematicChain m_endChain{white, 1};
+	KinematicChain m_mainChain{m_white, 3};
+	KinematicChain m_startChain{m_white, 1};
+	KinematicChain m_currChain{m_white, 3};
+	KinematicChain m_endChain{m_white, 1};
 
-	KinematicChain m_redChain{red, 3};
-	KinematicChain m_greenChain{green, 3};
+	KinematicChain m_redChain{m_red, 3};
+	KinematicChain m_greenChain{m_green, 3};
 
 	std::vector<std::unique_ptr<Obstacle>> m_obstacles{};
 	Obstacle* m_selectedObstacle = nullptr;

@@ -1,6 +1,6 @@
 #include "scene.hpp"
 
-#include "guis/leftPanel.hpp"
+#include "gui/leftPanel.hpp"
 #include "shaderPrograms.hpp"
 
 #include <algorithm>
@@ -195,7 +195,7 @@ void Scene::setEndChainPos(const glm::vec2& pos)
 void Scene::setChainScreenPos(const glm::vec2& screenPos)
 {
 	glm::vec2 pos =
-		(screenPos - glm::vec2{LeftPanel::width, 0} - glm::vec2{m_viewportSize} / 2.0f) * pixSize;
+		(screenPos - glm::vec2{LeftPanel::width, 0} - glm::vec2{m_viewportSize} / 2.0f) * m_pixSize;
 	pos.y *= -1;
 
 	if (m_mode == Mode::edit)
@@ -246,7 +246,7 @@ void Scene::selectObstacle(const glm::vec2& screenPos)
 	for (int i = 0; i < m_obstacles.size(); ++i)
 	{
 		glm::vec2 obstaclePos = m_obstacles[i]->getPos();
-		glm::vec2 obstacleScreenPos = glm::vec2{obstaclePos.x, -obstaclePos.y} / pixSize +
+		glm::vec2 obstacleScreenPos = glm::vec2{obstaclePos.x, -obstaclePos.y} / m_pixSize +
 			glm::vec2{m_viewportSize} / 2.0f + glm::vec2{LeftPanel::width, 0};
 		glm::vec2 relativePos = obstacleScreenPos - screenPos;
 		float screenDistanceSquared = glm::dot(relativePos, relativePos);
@@ -406,7 +406,7 @@ void Scene::updateCurrChain()
 	float relativeTime = m_animation.getTime() / m_animation.getEndTime();
 	relativeTime = std::min(std::max(relativeTime, 0.0f), 1.0f);
 	float pathInd = relativeTime * (m_path.size() - 1);
-	int pathIndFloor = std::floor(pathInd);
+	int pathIndFloor = static_cast<int>(std::floor(pathInd));
 	int pathIndCeil = pathIndFloor + 1;
 
 	float angle1DegIndFloor = m_path[pathIndFloor].angle1Deg;

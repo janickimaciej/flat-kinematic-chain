@@ -1,6 +1,6 @@
 #pragma once
 
-#include "guis/gui.hpp"
+#include "gui/leftPanel.hpp"
 #include "scene.hpp"
 
 #include <glad/glad.h>
@@ -10,21 +10,23 @@
 class Window
 {
 public:
-	Window(const glm::ivec2& initialSize);
+	Window();
 	~Window();
 
-	const glm::ivec2& viewportSize() const;
-	void setWindowData(Scene& scene, GUI& gui);
+	void init(Scene& scene);
 	bool shouldClose() const;
 	void swapBuffers() const;
 	void pollEvents() const;
+
+	const glm::ivec2& viewportSize() const;
 	GLFWwindow* getPtr();
 
 private:
+	static constexpr glm::ivec2 m_initialSize{1900, 1000};
+
 	GLFWwindow* m_windowPtr{};
-	glm::ivec2 m_viewportSize{};
+	glm::ivec2 m_viewportSize{m_initialSize - glm::ivec2{LeftPanel::width, 0}};
 	Scene* m_scene{};
-	GUI* m_gui{};
 
 	glm::vec2 m_lastCursorPos{};
 	bool m_dragging = false;

@@ -1,4 +1,4 @@
-#include "configurationSpacePanel.hpp"
+#include "gui/configurationSpacePanel.hpp"
 
 #include <imgui/imgui.h>
 
