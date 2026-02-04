@@ -3,12 +3,18 @@
 #include "gui/leftPanel.hpp"
 #include "shaderPrograms.hpp"
 
+#include <glad/glad.h>
+
 #include <algorithm>
 #include <queue>
 
 Scene::Scene(const glm::ivec2& viewportSize) :
 	m_viewportSize{viewportSize}
 {
+	glEnable(GL_DEPTH_TEST);
+	glEnable(GL_CULL_FACE);
+	glEnable(GL_MULTISAMPLE);
+
 	updateConfigurationSpace();
 	setMainChainPos({3, 4});
 }

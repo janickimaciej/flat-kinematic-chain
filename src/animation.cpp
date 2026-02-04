@@ -17,7 +17,7 @@ void Animation::start()
 		return;
 	}
 
-	m_startTime = now() - std::chrono::duration<float>(m_currentTime);
+	m_startTime = now() - std::chrono::duration<float>(m_currTime);
 	m_running = true;
 }
 
@@ -29,7 +29,7 @@ void Animation::stop()
 void Animation::reset()
 {
 	stop();
-	m_currentTime = 0;
+	m_currTime = 0;
 	m_updateCurrChain();
 }
 
@@ -40,11 +40,11 @@ void Animation::update()
 		return;
 	}
 
-	m_currentTime =
+	m_currTime =
 		std::chrono::duration_cast<std::chrono::duration<float>>(now() - m_startTime).count();
-	if (m_currentTime >= m_endTime)
+	if (m_currTime >= m_endTime)
 	{
-		m_currentTime = m_endTime;
+		m_currTime = m_endTime;
 		m_running = false;
 	}
 	m_updateCurrChain();
@@ -52,7 +52,7 @@ void Animation::update()
 
 float Animation::getTime() const
 {
-	return m_currentTime;
+	return m_currTime;
 }
 
 float Animation::getEndTime() const
@@ -63,7 +63,7 @@ float Animation::getEndTime() const
 void Animation::setEndTime(float time)
 {
 	m_endTime = time;
-	m_currentTime = std::min(m_currentTime, time);
+	m_currTime = std::min(m_currTime, time);
 	m_updateCurrChain();
 }
 
