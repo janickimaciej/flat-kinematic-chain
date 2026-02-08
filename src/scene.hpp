@@ -39,12 +39,12 @@ public:
 	glm::vec2 getCurrChainPos() const;
 	glm::vec2 getEndChainPos() const;
 	void setEndChainPos(const glm::vec2& pos);
-	void setChainScreenPos(const glm::vec2& screenPos);
+	void setChainViewportPos(const glm::vec2& viewportPos);
 	bool doubleSolution() const;
 	void chooseRed();
 	void chooseGreen();
 
-	void selectObstacle(const glm::vec2& screenPos);
+	void selectObstacle(const glm::vec2& viewportPos);
 	void addObstacle();
 	void deleteSelectedObstacle();
 	void cancel();

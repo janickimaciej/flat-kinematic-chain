@@ -78,7 +78,7 @@ void Window::resizeCallback(int width, int height)
 
 void Window::cursorMovementCallback(double x, double y)
 {
-	glm::vec2 currPos{static_cast<float>(x), static_cast<float>(y)};
+	glm::vec2 viewportPos{static_cast<float>(x) - LeftPanel::width, static_cast<float>(y)};
 
 	if (isCursorInGUI())
 	{
@@ -87,13 +87,13 @@ void Window::cursorMovementCallback(double x, double y)
 
 	if (m_dragging)
 	{
-		m_scene->setChainScreenPos(currPos);
+		m_scene->setChainViewportPos(viewportPos);
 	}
 }
 
 void Window::buttonCallback(int button, int action, int)
 {
-	glm::vec2 cursorPos = getCursorPos();
+	glm::vec2 cursorViewportPos = getCursorPos() - glm::vec2{LeftPanel::width, 0};
 
 	if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_RELEASE)
 	{
@@ -109,11 +109,11 @@ void Window::buttonCallback(int button, int action, int)
 
 		if (isKeyPressed(GLFW_KEY_LEFT_CONTROL))
 		{
-			m_scene->selectObstacle(cursorPos);
+			m_scene->selectObstacle(cursorViewportPos);
 		}
 		else
 		{
-			m_scene->setChainScreenPos(cursorPos);
+			m_scene->setChainViewportPos(cursorViewportPos);
 			m_dragging = true;
 		}
 	}

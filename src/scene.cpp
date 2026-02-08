@@ -198,10 +198,9 @@ void Scene::setEndChainPos(const glm::vec2& pos)
 	m_updated = false;
 }
 
-void Scene::setChainScreenPos(const glm::vec2& screenPos)
+void Scene::setChainViewportPos(const glm::vec2& viewportPos)
 {
-	glm::vec2 pos =
-		(screenPos - glm::vec2{LeftPanel::width, 0} - glm::vec2{m_viewportSize} / 2.0f) * m_pixSize;
+	glm::vec2 pos = (viewportPos - glm::vec2{m_viewportSize} / 2.0f) * m_pixSize;
 	pos.y *= -1;
 
 	if (m_mode == Mode::edit)
@@ -238,7 +237,7 @@ void Scene::chooseGreen()
 	chooseColor(m_greenChain.getConfiguration());
 }
 
-void Scene::selectObstacle(const glm::vec2& screenPos)
+void Scene::selectObstacle(const glm::vec2& viewportPos)
 {
 	if (m_mode == Mode::path)
 	{
@@ -247,19 +246,19 @@ void Scene::selectObstacle(const glm::vec2& screenPos)
 
 	std::optional<int> index = std::nullopt;
 	static constexpr float treshold = 30;
-	float minScreenDistanceSquared = treshold * treshold;
+	float minViewportDistanceSquared = treshold * treshold;
 
 	for (int i = 0; i < m_obstacles.size(); ++i)
 	{
 		glm::vec2 obstaclePos = m_obstacles[i]->getPos();
-		glm::vec2 obstacleScreenPos = glm::vec2{obstaclePos.x, -obstaclePos.y} / m_pixSize +
-			glm::vec2{m_viewportSize} / 2.0f + glm::vec2{LeftPanel::width, 0};
-		glm::vec2 relativePos = obstacleScreenPos - screenPos;
-		float screenDistanceSquared = glm::dot(relativePos, relativePos);
-		if (screenDistanceSquared < minScreenDistanceSquared)
+		glm::vec2 obstacleViewportPos = glm::vec2{obstaclePos.x, -obstaclePos.y} / m_pixSize +
+			glm::vec2{m_viewportSize} / 2.0f;
+		glm::vec2 relativePos = obstacleViewportPos - viewportPos;
+		float viewportDistanceSquared = glm::dot(relativePos, relativePos);
+		if (viewportDistanceSquared < minViewportDistanceSquared)
 		{
 			index = i;
-			minScreenDistanceSquared = screenDistanceSquared;
+			minViewportDistanceSquared = viewportDistanceSquared;
 		}
 	}
 
