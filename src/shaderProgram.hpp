@@ -10,10 +10,6 @@ class ShaderProgram
 {
 public:
 	ShaderProgram(const std::string& vertexShaderPath, const std::string& fragmentShaderPath);
-	ShaderProgram(const std::string& vertexShaderPath, const std::string& geometryShaderPath,
-		const std::string& fragmentShaderPath);
-	ShaderProgram(const std::string& vertexShaderPath, const std::string& tessCtrlShaderPath,
-		const std::string& tessEvalShaderPath, const std::string& fragmentShaderPath);
 	ShaderProgram(const ShaderProgram&) = delete;
 	ShaderProgram(ShaderProgram&&) = delete;
 	~ShaderProgram();

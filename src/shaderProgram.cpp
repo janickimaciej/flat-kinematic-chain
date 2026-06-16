@@ -19,25 +19,6 @@ ShaderProgram::ShaderProgram(const std::string& vertexShaderPath,
 	}
 { }
 
-ShaderProgram::ShaderProgram(const std::string& vertexShaderPath,
-	const std::string& geometryShaderPath, const std::string& fragmentShaderPath) :
-	ShaderProgram
-	{
-		{vertexShaderPath, geometryShaderPath, fragmentShaderPath},
-		{GL_VERTEX_SHADER, GL_GEOMETRY_SHADER, GL_FRAGMENT_SHADER}
-	}
-{ }
-
-ShaderProgram::ShaderProgram(const std::string& vertexShaderPath,
-	const std::string& tessCtrlShaderPath, const std::string& tessEvalShaderPath,
-	const std::string& fragmentShaderPath) :
-	ShaderProgram
-	{
-		{vertexShaderPath, tessCtrlShaderPath, tessEvalShaderPath, fragmentShaderPath},
-		{GL_VERTEX_SHADER, GL_TESS_CONTROL_SHADER, GL_TESS_EVALUATION_SHADER, GL_FRAGMENT_SHADER}
-	}
-{ }
-
 ShaderProgram::~ShaderProgram()
 {
 	glDeleteProgram(m_id);
@@ -158,18 +139,6 @@ void ShaderProgram::printCompilationError(unsigned int shader, GLenum shaderType
 	{
 		case GL_VERTEX_SHADER:
 			shaderTypeName = "vertex";
-			break;
-
-		case GL_TESS_CONTROL_SHADER:
-			shaderTypeName = "tessellation control";
-			break;
-
-		case GL_TESS_EVALUATION_SHADER:
-			shaderTypeName = "tessellation evaluation";
-			break;
-
-		case GL_GEOMETRY_SHADER:
-			shaderTypeName = "geometry";
 			break;
 
 		case GL_FRAGMENT_SHADER:
